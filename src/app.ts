@@ -1,30 +1,16 @@
-import http from 'http';
-import fs from 'fs';
+import { envs } from "./config/envs"
+import { Server } from "./presentation/server"
 
-// creacion del server 
-const server = http.createServer((req, res) => {
-    // La solicitud que la persona esta requiriendo
-    console.log(req.url);
-    // res.write('Hola Mundo');
-    // res.end() // termina la respuesta
+(()=> {
+    main()
+})()
 
-    if (req.url === '/') { // si la url es igual a / muestra el index
-        const htmlFile =fs.readFileSync('./public/index.html', 'utf-8');
-        res.writeHead(200, {'Content-Type': 'text/html'});
-        res.end(htmlFile);
-        return
-    } 
+function main() {
+    console.log('Hello World')
+    const server = new Server({
+        port: envs.PORT,
+        public_path: envs.PUBLIC_PATH
+    })
 
-    if (req.url?.endsWith(".js")) {
-        res.writeHead(200, {'Content-Type': 'application/javascript'});
-    } else if (req.url?.endsWith(".css")) {
-        res.writeHead(200, {'Content-Type': 'text/css'});
-    }
-
-    const responseContent = fs.readFileSync(`./public${req.url}`, 'utf-8');
-    res.end(responseContent);
-});
-
-server.listen((8080),() => {
-    console.log('Server is running on port 8080');
-});
+    server.start()
+}
