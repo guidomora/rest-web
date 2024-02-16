@@ -9,7 +9,7 @@ export class TodosRoutes {
         router.get('/:id', todoController.getTodoById) // la ruta recibe un argumento que en este caso es el id
         router.post('/', todoController.createTodo) // creamos un todo
         router.put('/:id', todoController.updateTodo) // actualizamos un todo
-        router.delete('/:id', todoController.deleteTodo)
+        router.delete('/:id', todoController.deleteTodo) // borramos un todo
         return router
     }
 }
