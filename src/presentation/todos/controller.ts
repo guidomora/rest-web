@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { prisma } from '../../data/postgreSQL/index';
+import { CreateTodo, UpdateTodoDto } from "../../domain/dtos";
 
 const todos = [
     {
@@ -55,8 +56,10 @@ export class TodosController {
 
 
     public createTodo = async (req: Request, res: Response) => {
-        const { text } = req.body;
-        if (!text) return res.status(400).json({ error: 'Text property is required' }); // si no hay texto arroja un error
+        const [error, createTodoDto] = CreateTodo.create(req.body);
+        if (error) return res.status(400).json({ error }); // si hay un error, lo arroja
+        // const { text } = req.body;
+        // if (!text) return res.status(400).json({ error: 'Text property is required' }); // si no hay texto arroja un error
 
         // LOCAL
         // const newTodo = {
@@ -67,7 +70,7 @@ export class TodosController {
 
         // POSGRES
         const newTodo = await prisma.todo.create({
-            data: { text }
+            data: createTodoDto! // el signo de admiracion es para que no tire error
         })
 
         todos.push(newTodo) // se pushea
@@ -83,13 +86,16 @@ export class TodosController {
 
     public updateTodo = async (req: Request, res: Response) => {
         const id = +req.params.id;
-        if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' }); // si el id no es un numero arroja un error
+        const [error, updateTodoDto] = UpdateTodoDto.create({...req.body, id});
+        if (error) return res.status(400).json({ error }); // si hay un error, lo arroja
+
+        // if (isNaN(id)) return res.status(400).json({ error: 'Invalid id' }); // si el id no es un numero arroja un error
 
         // const todo = todos.find(todo => todo.id === id); // busca el id en el array
         const todo = await prisma.todo.findUnique({ where: { id } }) // busca el id en la base de datos
         if (!todo) return res.status(400).json({ error: `Todo with id ${id} not found` });
 
-        const { text, completedAt } = req.body;
+        // const { text, completedAt } = req.body;
 
         // LOCAL
         // todo.text = text || todo.text; // si no hay texto, se queda con el que ya tenia
@@ -99,10 +105,11 @@ export class TodosController {
         // POSGRES
         const updating = await prisma.todo.update({
             where: { id },
-            data: {
-                text,
-                completedAt: (completedAt) ? new Date(completedAt) : null  // si no hay fecha, se queda con la que ya tenia
-            }
+            // data: {
+            //     text,
+            //     completedAt: (completedAt) ? new Date(completedAt) : null  // si no hay fecha, se queda con la que ya tenia
+            // }
+            data: updateTodoDto!.values
         })
         res.json(updating)
     }
